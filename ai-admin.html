@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Question Generation - QuizBowlHub Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .admin-title h1 {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .admin-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+            color: #4a5568;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .question-preview {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .question-answer {
+            font-weight: bold;
+            color: #38a169;
+            margin-bottom: 10px;
+        }
+
+        .question-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .quality-score {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .quality-excellent {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .quality-good {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+
+        .quality-fair {
+            background: #fbb6ce;
+            color: #702459;
+        }
+
+        .quality-poor {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .message-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .message-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        .message-warning {
+            background: #faf089;
+            color: #744210;
+            border: 1px solid #f6e05e;
+        }
+
+        .generated-questions {
+            grid-column: 1 / -1;
+        }
+
+        .questions-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .question-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .question-header {
+            background: #f7fafc;
+            padding: 15px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .batch-controls {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .batch-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div class="admin-title">
+                <h1>🤖 AI Question Generation</h1>
+                <div class="admin-subtitle">Phase 4 Enhancement - QuizBowlHub Admin Panel</div>
+            </div>
+            <div class="user-info">
+                <div>Welcome, <span id="currentUser">Admin</span></div>
+                <div style="font-size: 0.9rem; color: #666;">MODERATOR</div>
+            </div>
+        </div>
+
+        <!-- Statistics Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                📊 AI Generation Statistics
+                <button class="btn btn-secondary" onclick="refreshStats()" style="margin-left: auto;">Refresh</button>
+            </div>
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Single Question Generation -->
+            <div class="panel">
+                <div class="panel-header">⚡ Generate Single Question</div>
+                
+                <form id="singleQuestionForm" onsubmit="generateSingleQuestion(event)">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="singleCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="Literature">Literature</option>
+                            <option value="Science">Science</option>
+                            <option value="History">History</option>
+                            <option value="Geography">Geography</option>
+                            <option value="Fine Arts">Fine Arts</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Difficulty</label>
+                        <select class="form-select" id="singleDifficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="generateSingleBtn">
+                        🚀 Generate Question
+                    </button>
+                </form>
+            </div>
+
+            <!-- Batch Generation -->
+            <div class="panel">
+                <div class="panel-header">🚀 Batch Generation</div>
+                
+                <div class="batch-controls">
+                    <div class="batch-grid">
+                        <div class="form-group">
+                            <label class="form-label">Literature</label>
+                            <input type="number" class="form-input" id="batchLiterature" min="0" max="5" value="2" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Science</label>
+                            <input type="number" class="form-input" id="batchScience" min="0" max="5" value="2" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">History</label>
+                            <input type="number" class="form-input" id="batchHistory" min="0" max="5" value="2" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Geography</label>
+                            <input type="number" class="form-input" id="batchGeography" min="0" max="5" value="2" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fine Arts</label>
+                            <input type="number" class="form-input" id="batchFineArts" min="0" max="5" value="2" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Difficulty</label>
+                            <select class="form-select" id="batchDifficulty">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="generateBatch()">
+                        🎯 Generate Batch
+                    </button>
+                    <span style="margin-left: 15px; color: #666; font-size: 0.9rem;">
+                        Total: <span id="batchTotal">10</span> questions
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generated Questions Panel -->
+        <div class="panel generated-questions">
+            <div class="panel-header">
+                📝 Generated Questions
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <button class="btn btn-success" onclick="approveAllPending()" id="approveAllBtn" disabled>
+                        ✅ Approve All Pending
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearQuestions()">
+                        🗑️ Clear List
+                    </button>
+                </div>
+            </div>
+            
+            <div id="messagesContainer"></div>
+            <div class="questions-list" id="questionsList">
+                <div style="text-align: center; color: #666; padding: 40px;">
+                    No questions generated yet. Use the panels above to create AI-generated questions.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AIQuestionAdmin {
+            constructor() {
+                this.token = localStorage.getItem('auth_token');
+                this.currentUser = null;
+                this.generatedQuestions = [];
+                this.stats = null;
+                
+                this.init();
+            }
+
+            init() {
+                if (!this.token) {
+                    this.showLoginPrompt();
+                    return;
+                }
+
+                this.authenticateAndLoad();
+                this.setupEventListeners();
+            }
+
+            async authenticateAndLoad() {
+                try {
+                    // Verify token and get user info
+                    const response = await fetch('/api/auth/me', {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.currentUser = data.user;
+                        
+                        if (!['MODERATOR', 'ADMIN'].includes(this.currentUser.role)) {
+                            alert('Access denied. This panel requires MODERATOR or ADMIN privileges.');
+                            window.location.href = '/';
+                            return;
+                        }
+                        
+                        document.getElementById('currentUser').textContent = this.currentUser.username;
+                        this.loadStats();
+                    } else {
+                        throw new Error('Authentication failed');
+                    }
+                } catch (error) {
+                    console.error('Auth error:', error);
+                    this.showLoginPrompt();
+                }
+            }
+
+            showLoginPrompt() {
+                alert('Please log in as a MODERATOR or ADMIN to access this panel.');
+                window.location.href = '/';
+            }
+
+            setupEventListeners() {
+                // Update batch total when inputs change
+                document.addEventListener('input', (e) => {
+                    if (e.target.id.startsWith('batch')) {
+                        this.updateBatchTotal();
+                    }
+                });
+            }
+
+            updateBatchTotal() {
+                const categories = ['Literature', 'Science', 'History', 'Geography', 'FineArts'];
+                let total = 0;
+                
+                categories.forEach(category => {
+                    const value = parseInt(document.getElementById(`batch${category}`).value || 0);
+                    total += Math.max(0, Math.min(value, 5));
+                });
+                
+                document.getElementById('batchTotal').textContent = total;
+            }
+
+            async loadStats() {
+                try {
+                    const response = await fetch('/api/ai/stats', {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.stats = data;
+                        this.displayStats(data);
+                    } else {
+                        this.showMessage('Failed to load statistics', 'error');
+                    }
+                } catch (error) {
+                    console.error('Stats error:', error);
+                    this.showMessage('Network error loading statistics', 'error');
+                }
+            }
+
+            displayStats(data) {
+                const statsGrid = document.getElementById('statsGrid');
+                
+                const stats = [
+                    {
+                        number: data.ai.configured ? 'Yes' : 'No',
+                        label: 'AI Configured',
+                        color: data.ai.configured ? '#38a169' : '#e53e3e'
+                    },
+                    {
+                        number: data.ai.requestCount || 0,
+                        label: 'Requests Today'
+                    },
+                    {
+                        number: data.ai.remaining || 0,
+                        label: 'Remaining Today'
+                    },
+                    {
+                        number: data.database.totalQuestions || 0,
+                        label: 'Total Questions'
+                    },
+                    {
+                        number: data.database.aiGenerated || 0,
+                        label: 'AI Generated'
+                    },
+                    {
+                        number: data.database.manual || 0,
+                        label: 'Manual Questions'
+                    }
+                ];
+
+                statsGrid.innerHTML = stats.map(stat => `
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: ${stat.color || '#667eea'}">${stat.number}</div>
+                        <div class="stat-label">${stat.label}</div>
+                    </div>
+                `).join('');
+            }
+
+            async generateSingleQuestion(event) {
+                event.preventDefault();
+                
+                const category = document.getElementById('singleCategory').value;
+                const difficulty = document.getElementById('singleDifficulty').value;
+                const btn = document.getElementById('generateSingleBtn');
+                
+                if (!category) {
+                    this.showMessage('Please select a category', 'warning');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Generating...';
+
+                try {
+                    const response = await fetch('/api/ai/generate-question', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({ category, difficulty })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.addGeneratedQuestion(data.question, data.validation);
+                        this.showMessage(`✅ Question generated successfully! Quality score: ${data.question.qualityScore}/100`, 'success');
+                        this.loadStats(); // Refresh stats
+                    } else {
+                        this.showMessage(`❌ Generation failed: ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Generation error:', error);
+                    this.showMessage('Network error during generation', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 Generate Question';
+                }
+            }
+
+            async generateBatch() {
+                const categories = ['Literature', 'Science', 'History', 'Geography', 'FineArts'];
+                const difficulty = document.getElementById('batchDifficulty').value;
+                const requests = [];
+
+                categories.forEach(category => {
+                    const count = parseInt(document.getElementById(`batch${category}`).value || 0);
+                    for (let i = 0; i < count; i++) {
+                        requests.push({ category, difficulty });
+                    }
+                });
+
+                if (requests.length === 0) {
+                    this.showMessage('Please specify at least one question to generate', 'warning');
+                    return;
+                }
+
+                if (requests.length > 10) {
+                    this.showMessage('Maximum 10 questions per batch', 'warning');
+                    return;
+                }
+
+                this.showMessage(`🚀 Generating ${requests.length} questions...`, 'info');
+
+                try {
+                    const response = await fetch('/api/ai/generate-batch', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({ requests })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        data.results.forEach(result => {
+                            if (result.success) {
+                                this.addGeneratedQuestion(result.question, result.validation);
+                            }
+                        });
+
+                        this.showMessage(
+                            `✅ Batch complete: ${data.summary.successful}/${data.summary.total} questions generated successfully`,
+                            'success'
+                        );
+                        this.loadStats();
+                    } else {
+                        this.showMessage(`❌ Batch generation failed: ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Batch generation error:', error);
+                    this.showMessage('Network error during batch generation', 'error');
+                }
+            }
+
+            addGeneratedQuestion(question, validation) {
+                this.generatedQuestions.push({ question, validation, status: 'pending' });
+                this.renderQuestions();
+                this.updateApproveAllButton();
+            }
+
+            renderQuestions() {
+                const questionsList = document.getElementById('questionsList');
+                
+                if (this.generatedQuestions.length === 0) {
+                    questionsList.innerHTML = `
+                        <div style="text-align: center; color: #666; padding: 40px;">
+                            No questions generated yet. Use the panels above to create AI-generated questions.
+                        </div>
+                    `;
+                    return;
+                }
+
+                questionsList.innerHTML = this.generatedQuestions.map((item, index) => {
+                    const q = item.question;
+                    const qualityClass = this.getQualityClass(q.qualityScore);
+                    
+                    return `
+                        <div class="question-item">
+                            <div class="question-header">
+                                <div>
+                                    <strong>${q.category}</strong> - ${q.difficulty}
+                                    <span class="quality-score ${qualityClass}">
+                                        Quality: ${q.qualityScore}/100
+                                    </span>
+                                </div>
+                                <div class="question-actions">
+                                    ${item.status === 'pending' ? `
+                                        <button class="btn btn-success" onclick="approveQuestion(${index})">
+                                            ✅ Approve
+                                        </button>
+                                        <button class="btn btn-danger" onclick="rejectQuestion(${index})">
+                                            ❌ Reject
+                                        </button>
+                                    ` : `
+                                        <span style="padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; ${
+                                            item.status === 'approved' ? 'background: #c6f6d5; color: #22543d;' : 'background: #fed7d7; color: #742a2a;'
+                                        }">
+                                            ${item.status === 'approved' ? '✅ Approved' : '❌ Rejected'}
+                                        </span>
+                                    `}
+                                </div>
+                            </div>
+                            <div class="question-preview">
+                                <div class="question-text">${q.question}</div>
+                                <div class="question-answer"><strong>Answer:</strong> ${q.answer}</div>
+                                ${q.acceptableAnswers && q.acceptableAnswers.length > 0 ? `
+                                    <div style="color: #666; font-size: 0.9rem; margin-top: 5px;">
+                                        <strong>Acceptable answers:</strong> ${q.acceptableAnswers.join(', ')}
+                                    </div>
+                                ` : ''}
+                                <div class="question-meta">
+                                    <span>Generated: ${new Date(q.generatedAt).toLocaleString()}</span>
+                                    ${item.validation.issues.length > 0 ? `
+                                        <span style="color: #e53e3e;">Issues: ${item.validation.issues.join(', ')}</span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            getQualityClass(score) {
+                if (score >= 90) return 'quality-excellent';
+                if (score >= 75) return 'quality-good';
+                if (score >= 60) return 'quality-fair';
+                return 'quality-poor';
+            }
+
+            async approveQuestion(index) {
+                const item = this.generatedQuestions[index];
+                
+                try {
+                    const response = await fetch('/api/ai/approve-question', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({ question: item.question })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        item.status = 'approved';
+                        this.showMessage(`✅ Question approved and added to database`, 'success');
+                        this.renderQuestions();
+                        this.updateApproveAllButton();
+                        this.loadStats();
+                    } else {
+                        this.showMessage(`❌ Approval failed: ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Approval error:', error);
+                    this.showMessage('Network error during approval', 'error');
+                }
+            }
+
+            rejectQuestion(index) {
+                this.generatedQuestions[index].status = 'rejected';
+                this.showMessage('❌ Question rejected', 'info');
+                this.renderQuestions();
+                this.updateApproveAllButton();
+            }
+
+            async approveAllPending() {
+                const pendingQuestions = this.generatedQuestions.filter(item => item.status === 'pending');
+                
+                if (pendingQuestions.length === 0) return;
+
+                for (const item of pendingQuestions) {
+                    try {
+                        const response = await fetch('/api/ai/approve-question', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({ question: item.question })
+                        });
+
+                        if (response.ok) {
+                            item.status = 'approved';
+                        }
+                    } catch (error) {
+                        console.error('Bulk approval error:', error);
+                    }
+                }
+
+                this.showMessage(`✅ ${pendingQuestions.length} questions approved and added to database`, 'success');
+                this.renderQuestions();
+                this.updateApproveAllButton();
+                this.loadStats();
+            }
+
+            updateApproveAllButton() {
+                const btn = document.getElementById('approveAllBtn');
+                const pendingCount = this.generatedQuestions.filter(item => item.status === 'pending').length;
+                
+                btn.disabled = pendingCount === 0;
+                btn.textContent = `✅ Approve All Pending (${pendingCount})`;
+            }
+
+            clearQuestions() {
+                if (confirm('Clear all generated questions from this list?')) {
+                    this.generatedQuestions = [];
+                    this.renderQuestions();
+                    this.updateApproveAllButton();
+                    this.showMessage('Questions list cleared', 'info');
+                }
+            }
+
+            showMessage(text, type = 'info') {
+                const container = document.getElementById('messagesContainer');
+                const message = document.createElement('div');
+                message.className = `message message-${type}`;
+                message.textContent = text;
+                
+                container.appendChild(message);
+                
+                setTimeout(() => {
+                    if (message.parentNode) {
+                        message.parentNode.removeChild(message);
+                    }
+                }, 5000);
+
+                // Scroll to show message
+                message.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // Global functions
+        function generateSingleQuestion(event) {
+            window.aiAdmin.generateSingleQuestion(event);
+        }
+
+        function generateBatch() {
+            window.aiAdmin.generateBatch();
+        }
+
+        function approveQuestion(index) {
+            window.aiAdmin.approveQuestion(index);
+        }
+
+        function rejectQuestion(index) {
+            window.aiAdmin.rejectQuestion(index);
+        }
+
+        function approveAllPending() {
+            window.aiAdmin.approveAllPending();
+        }
+
+        function clearQuestions() {
+            window.aiAdmin.clearQuestions();
+        }
+
+        function refreshStats() {
+            window.aiAdmin.loadStats();
+        }
+
+        // Initialize
+        window.aiAdmin = new AIQuestionAdmin();
+    </script>
+</body>
+</html>

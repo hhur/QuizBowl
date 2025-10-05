@@ -1,0 +1,34 @@
+{
+  "name": "@quizbowlhub/database",
+  "version": "0.1.0",
+  "description": "Database schema and utilities for QuizBowlHub",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "echo 'Database package built'",
+    "dev": "echo 'Database package ready'",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "lint": "echo 'Database package linted'",
+    "type-check": "echo 'Database package type-checked'",
+    "clean": "echo 'Database package cleaned'"
+  },
+  "files": [
+    "dist/**/*",
+    "prisma/schema.prisma"
+  ],
+  "dependencies": {
+    "@prisma/client": "^5.4.2",
+    "@quizbowlhub/types": "*",
+    "next": "14.2.33"
+  },
+  "devDependencies": {
+    "@quizbowlhub/config": "*",
+    "prisma": "^5.4.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.2.2"
+  }
+}

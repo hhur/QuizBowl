@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      UserRole @default(PLAYER)
+  firstName String
+  lastName  String
+  school    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teamMemberships   TeamMember[]
+  practiceSessions  PracticeSession[]
+  practiceResponses PracticeResponse[]
+  createdQuestions  Question[] @relation("QuestionCreator")
+
+  @@map("users")
+}
+
+model Team {
+  id          String  @id @default(cuid())
+  name        String
+  school      String
+  description String?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members TeamMember[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String       @id @default(cuid())
+  userId   String
+  teamId   String
+  role     TeamRole     @default(PLAYER)
+  status   MemberStatus @default(ACTIVE)
+  joinedAt DateTime     @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@map("team_members")
+}
+
+model Question {
+  id             String             @id @default(cuid())
+  text           String
+  answer         String
+  category       QuestionCategory
+  difficulty     QuestionDifficulty
+  source         String?
+  year           Int?
+  tournament     String?
+  packet         Int?
+  questionNumber Int?
+  isActive       Boolean            @default(true)
+  createdById    String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  // Relations
+  createdBy         User?              @relation("QuestionCreator", fields: [createdById], references: [id])
+  practiceResponses PracticeResponse[]
+
+  @@index([category])
+  @@index([difficulty])
+  @@index([source])
+  @@map("questions")
+}
+
+model PracticeSession {
+  id                   String   @id @default(cuid())
+  userId               String
+  name                 String?
+  status               PracticeSessionStatus @default(ACTIVE)
+  currentQuestionIndex Int      @default(0)
+  totalQuestions       Int
+  startedAt            DateTime @default(now())
+  completedAt          DateTime?
+
+  // Session configuration
+  filterCategories    QuestionCategory[]
+  filterDifficulties  QuestionDifficulty[]
+
+  // Relations
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responses PracticeResponse[]
+
+  @@map("practice_sessions")
+}
+
+model PracticeResponse {
+  id           String    @id @default(cuid())
+  sessionId    String
+  questionId   String
+  userId       String
+  userAnswer   String?
+  isCorrect    Boolean?
+  responseTime Int?      // milliseconds
+  answeredAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  session  PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, questionId])
+  @@map("practice_responses")
+}
+
+// Enums
+enum UserRole {
+  PLAYER
+  COACH
+  MODERATOR
+  ADMIN
+}
+
+enum TeamRole {
+  PLAYER
+  CAPTAIN
+  COACH
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum QuestionCategory {
+  LITERATURE
+  HISTORY
+  SCIENCE
+  FINE_ARTS
+  RELIGION
+  MYTHOLOGY
+  PHILOSOPHY
+  SOCIAL_SCIENCE
+  CURRENT_EVENTS
+  GEOGRAPHY
+  OTHER
+}
+
+enum QuestionDifficulty {
+  MIDDLE_SCHOOL
+  HIGH_SCHOOL
+  COLLEGIATE
+  OPEN
+}
+
+enum PracticeSessionStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+}

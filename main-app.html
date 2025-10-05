@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizBowlHub - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"], input[type="password"], select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-bottom: 0;
+        }
+
+        .demo-accounts {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        .demo-accounts h4 {
+            color: #495057;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .demo-account {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            font-size: 0.85rem;
+            border-left: 3px solid #667eea;
+        }
+
+        .status {
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .links {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏆</div>
+        <h1>QuizBowlHub</h1>
+        <p class="subtitle">Real-time Quiz Bowl Competition Platform</p>
+
+        <div id="status" class="status hidden"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+        </form>
+
+        <button type="button" class="btn btn-secondary" onclick="showRegisterForm()">Create Account</button>
+
+        <div id="registerForm" class="hidden">
+            <h3 style="margin: 1.5rem 0 1rem 0; color: #555;">Create New Account</h3>
+            <form id="registerFormElement">
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" name="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regName">Full Name</label>
+                    <input type="text" id="regName" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regRole">Role</label>
+                    <select id="regRole" name="role" required>
+                        <option value="student">Student</option>
+                        <option value="coach">Coach</option>
+                        <option value="moderator">Moderator</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">Register</button>
+                <button type="button" class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
+            </form>
+        </div>
+
+        <div class="demo-accounts">
+            <h4>Demo Accounts</h4>
+            <div class="demo-account">
+                <strong>Admin:</strong> admin / admin123
+            </div>
+            <div class="demo-account">
+                <strong>Student:</strong> student1 / student123
+            </div>
+            <div class="demo-account">
+                <strong>Coach:</strong> coach1 / coach123
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="/api/health/detailed">System Status</a>
+            <a href="/enhanced-competition">Enhanced Competition</a>
+            <a href="/ai-admin">AI Admin Panel</a>
+            <a href="/realtime-test-client.html">Legacy Test Client</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        // Check if user was redirected here after logout
+        // If so, clear any remaining tokens to prevent auto-login
+        window.addEventListener('DOMContentLoaded', function() {
+            // Check if we came from a logout action
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromLogout = urlParams.get('logout');
+            
+            if (fromLogout === 'true') {
+                // Clear any remaining authentication data
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_data');
+                
+                // Show logout success message
+                showStatus('Logged out successfully', 'success');
+                
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                status.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Show/hide forms
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        function showLoginForm() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const credentials = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            try {
+                showStatus('Logging in...', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(credentials)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('Login successful! Redirecting...', 'success');
+                    
+                    // Store token
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('user_data', JSON.stringify(data.user));
+                    
+                    // Redirect to dashboard where users can choose Practice or Competition
+                    setTimeout(() => {
+                        window.location.href = '/dashboard?user=' + encodeURIComponent(data.user.username) + '&role=' + data.user.role;
+                    }, 1500);
+                } else {
+                    showStatus(data.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showStatus('Network error. Please check if server is running.', 'error');
+            }
+        });
+
+        // Register form handler
+        document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userData = {
+                username: formData.get('username'),
+                name: formData.get('name'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                role: formData.get('role')
+            };
+
+            try {
+                showStatus('Creating account...', 'info');
+                
+                const response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('Account created successfully! You can now login.', 'success');
+                    showLoginForm();
+                    
+                    // Pre-fill username
+                    document.getElementById('username').value = userData.username;
+                } else {
+                    showStatus(data.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showStatus('Network error. Please check if server is running.', 'error');
+            }
+        });
+
+        // Check if already logged in
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                showStatus('You are already logged in. Redirecting...', 'info');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+            }
+        });
+
+        // Demo account quick login
+        function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+
+        // Add click handlers to demo accounts
+        document.querySelectorAll('.demo-account').forEach((account, index) => {
+            account.style.cursor = 'pointer';
+            account.addEventListener('click', () => {
+                const credentials = [
+                    { username: 'admin', password: 'admin123' },
+                    { username: 'student1', password: 'student123' },
+                    { username: 'coach1', password: 'coach123' }
+                ];
+                
+                if (credentials[index]) {
+                    quickLogin(credentials[index].username, credentials[index].password);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

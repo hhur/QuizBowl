@@ -1,0 +1,27 @@
+{
+  "name": "Quiz Bowl Practice & Competition Platform",
+  "slug": "quizbowlhub",
+  "description": "Platform for quiz bowl practice, live competitions, analytics, and tournament management.",
+  "stack": {
+    "frontend": "Next.js 14 + Tailwind CSS + React Query",
+    "backend": "Express + Prisma + PostgreSQL + Socket.IO",
+    "infrastructure": "Docker, Redis, GitHub Actions"
+  },
+  "domains": [
+    "auth",
+    "users",
+    "questions",
+    "games",
+    "tournaments",
+    "analytics",
+    "teams"
+  ],
+  "principles": [
+    "Type safety across full stack",
+    "Real-time first for competition features",
+    "Scalable modular monorepo (Turborepo)",
+    "Secure by default (rate limiting, JWT, input validation)",
+    "Observability-ready (structured logging)"
+  ],
+  "status": "scaffolding"
+}

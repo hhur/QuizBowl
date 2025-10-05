@@ -1,0 +1,284 @@
+// Consolidated Prisma schema (corrected TeamMember relations)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  firstName String?
+  lastName  String?
+  avatar    String?
+  role      UserRole @default(PLAYER)
+  password  String
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  teams          TeamMember[]
+  games          GameParticipant[]
+  responses      QuestionResponse[]
+  tournaments    TournamentParticipant[]
+  createdGames   Game[] @relation("GamesCreated")
+  statistics     UserStatistics?
+  @@map("users")
+}
+
+enum UserRole { PLAYER COACH ADMIN MODERATOR }
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  avatar      String?
+  school      String?
+  isPublic    Boolean  @default(true)
+  inviteCode  String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     TeamMember[]
+  games       Game[]
+  tournaments TournamentTeam[]
+  statistics  TeamStatistics?
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  userId   String
+  teamId   String
+  role     TeamRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  @@unique([userId, teamId])
+  @@map("team_members")
+}
+
+enum TeamRole { CAPTAIN MEMBER COACH }
+
+model Question {
+  id          String         @id @default(cuid())
+  text        String
+  answer      String
+  category    QuestionCategory
+  subcategory String?
+  difficulty  Difficulty
+  type        QuestionType   @default(TOSSUP)
+  bonus       String?
+  source      String?
+  year        Int?
+  tournament  String?
+  packet      String?
+  number      Int?
+  audioUrl    String?
+  imageUrl    String?
+  tags        String[]
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  responses   QuestionResponse[]
+  gameQuestions GameQuestion[]
+  @@map("questions")
+}
+
+enum QuestionCategory { LITERATURE HISTORY SCIENCE FINE_ARTS RELIGION MYTHOLOGY PHILOSOPHY SOCIAL_SCIENCE CURRENT_EVENTS GEOGRAPHY OTHER }
+
+enum Difficulty { EASY MEDIUM HARD EXPERT }
+
+enum QuestionType { TOSSUP BONUS LIGHTNING COMPUTATION }
+
+model Game {
+  id            String            @id @default(cuid())
+  name          String
+  description   String?
+  type          GameType
+  format        GameFormat
+  status        GameStatus        @default(WAITING)
+  maxPlayers    Int               @default(8)
+  timeLimit     Int?
+  teamBased     Boolean           @default(false)
+  teamId        String?
+  publicGame    Boolean           @default(true)
+  inviteCode    String?           @unique
+  pointsCorrect Int               @default(10)
+  pointsBonus   Int               @default(20)
+  pointsNeg     Int               @default(-5)
+  startTime     DateTime?
+  endTime       DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  createdBy     String
+  creator       User              @relation("GamesCreated", fields: [createdBy], references: [id])
+  team          Team?             @relation(fields: [teamId], references: [id])
+  participants  GameParticipant[]
+  questions     GameQuestion[]
+  @@map("games")
+}
+
+enum GameType { PRACTICE SCRIMMAGE TOURNAMENT LIGHTNING_ROUND }
+
+enum GameFormat { INDIVIDUAL TEAM HEAD_TO_HEAD ELIMINATION }
+
+enum GameStatus { WAITING IN_PROGRESS PAUSED COMPLETED CANCELLED }
+
+model GameParticipant {
+  id        String @id @default(cuid())
+  gameId    String
+  userId    String
+  score     Int    @default(0)
+  correct   Int    @default(0)
+  incorrect Int    @default(0)
+  isActive  Boolean @default(true)
+  joinedAt  DateTime @default(now())
+  game      Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([gameId, userId])
+  @@map("game_participants")
+}
+
+model GameQuestion {
+  id           String   @id @default(cuid())
+  gameId       String
+  questionId   String
+  orderIndex   Int
+  timeAsked    DateTime?
+  timeAnswered DateTime?
+  isActive     Boolean  @default(false)
+  isCompleted  Boolean  @default(false)
+  game         Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  question     Question @relation(fields: [questionId], references: [id])
+  responses    QuestionResponse[]
+  @@unique([gameId, orderIndex])
+  @@map("game_questions")
+}
+
+model QuestionResponse {
+  id             String        @id @default(cuid())
+  gameQuestionId String
+  userId         String
+  questionId     String
+  answer         String
+  isCorrect      Boolean
+  points         Int           @default(0)
+  timeElapsed    Int
+  submittedAt    DateTime      @default(now())
+  gameQuestion   GameQuestion  @relation(fields: [gameQuestionId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question       Question      @relation(fields: [questionId], references: [id])
+  @@unique([gameQuestionId, userId])
+  @@map("question_responses")
+}
+
+model Tournament {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  format       TournamentFormat
+  status       TournamentStatus @default(REGISTRATION)
+  maxTeams     Int?
+  maxPlayers   Int?
+  startDate    DateTime
+  endDate      DateTime?
+  registrationDeadline DateTime?
+  isPublic     Boolean       @default(true)
+  entryFee     Decimal?      @db.Decimal(10, 2)
+  prizePool    Decimal?      @db.Decimal(10, 2)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  participants TournamentParticipant[]
+  teams        TournamentTeam[]
+  brackets     TournamentBracket[]
+  @@map("tournaments")
+}
+
+enum TournamentFormat { SINGLE_ELIMINATION DOUBLE_ELIMINATION ROUND_ROBIN SWISS LADDER }
+
+enum TournamentStatus { REGISTRATION IN_PROGRESS COMPLETED CANCELLED }
+
+model TournamentParticipant {
+  id           String     @id @default(cuid())
+  tournamentId String
+  userId       String
+  registeredAt DateTime   @default(now())
+  isActive     Boolean    @default(true)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([tournamentId, userId])
+  @@map("tournament_participants")
+}
+
+model TournamentTeam {
+  id           String     @id @default(cuid())
+  tournamentId String
+  teamId       String
+  registeredAt DateTime   @default(now())
+  isActive     Boolean    @default(true)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  @@unique([tournamentId, teamId])
+  @@map("tournament_teams")
+}
+
+model TournamentBracket {
+  id           String     @id @default(cuid())
+  tournamentId String
+  round        Int
+  matchNumber  Int
+  player1Id    String?
+  player2Id    String?
+  team1Id      String?
+  team2Id      String?
+  winnerId     String?
+  score1       Int?
+  score2       Int?
+  status       MatchStatus @default(PENDING)
+  scheduledAt  DateTime?
+  completedAt  DateTime?
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  @@unique([tournamentId, round, matchNumber])
+  @@map("tournament_brackets")
+}
+
+enum MatchStatus { PENDING IN_PROGRESS COMPLETED FORFEIT }
+
+model UserStatistics {
+  id           String @id @default(cuid())
+  userId       String @unique
+  gamesPlayed  Int    @default(0)
+  totalPoints  Int    @default(0)
+  questionsAnswered Int @default(0)
+  correctAnswers Int   @default(0)
+  accuracy     Decimal @default(0) @db.Decimal(5, 4)
+  avgPoints    Decimal @default(0) @db.Decimal(8, 2)
+  avgTime      Int     @default(0)
+  literatureAccuracy  Decimal @default(0) @db.Decimal(5, 4)
+  historyAccuracy     Decimal @default(0) @db.Decimal(5, 4)
+  scienceAccuracy     Decimal @default(0) @db.Decimal(5, 4)
+  fineArtsAccuracy    Decimal @default(0) @db.Decimal(5, 4)
+  globalRank   Int?
+  lastUpdated  DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("user_statistics")
+}
+
+model TeamStatistics {
+  id           String @id @default(cuid())
+  teamId       String @unique
+  gamesPlayed  Int    @default(0)
+  wins         Int    @default(0)
+  losses       Int    @default(0)
+  totalPoints  Int    @default(0)
+  avgScore     Decimal @default(0) @db.Decimal(8, 2)
+  winRate      Decimal @default(0) @db.Decimal(5, 4)
+  ranking      Int?
+  lastUpdated  DateTime @updatedAt
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  @@map("team_statistics")
+}

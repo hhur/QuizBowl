@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizBowl Competition - Enhanced Interface</title>
+    <style>
+        /* Phase 4: Enhanced Competition Interface */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .competition-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .competition-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .game-info h1 {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .game-status {
+            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Competition Area */
+        .competition-main {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            flex: 1;
+        }
+
+        /* Question Area */
+        .question-area {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .question-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .question-category {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .question-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #2d3748;
+            margin-bottom: 30px;
+            flex: 1;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            text-align: left;
+        }
+
+        /* Enhanced Buzzer */
+        .buzzer-area {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .buzzer-button {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .buzzer-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(238, 90, 36, 0.5);
+        }
+
+        .buzzer-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.6);
+        }
+
+        .buzzer-button.disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(160, 174, 192, 0.3);
+        }
+
+        .buzzer-button.buzzing {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            animation: buzzerPulse 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes buzzerPulse {
+            0% { transform: scale(1); box-shadow: 0 8px 25px rgba(255, 140, 0, 0.6); }
+            100% { transform: scale(1.05); box-shadow: 0 12px 35px rgba(255, 140, 0, 0.8); }
+        }
+
+        .buzzer-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .buzzer-status {
+            margin-top: 15px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        /* Answer Input */
+        .answer-area {
+            margin-top: 20px;
+            display: block;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .answer-area.active {
+            opacity: 1;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .answer-area:not(.active) .answer-input {
+            background: #f7fafc;
+            cursor: not-allowed;
+        }
+        
+        .answer-area:not(.active) .btn {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .answer-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        /* Players Panel */
+        .players-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+
+        .panel-header {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .player-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #e2e8f0;
+        }
+
+        .player-card.current-user {
+            border-left-color: #667eea;
+            background: linear-gradient(135deg, #ebf4ff, #e6fffa);
+        }
+
+        .player-card.buzzed {
+            border-left-color: #ffd700;
+            background: linear-gradient(135deg, #fffaf0, #feebcb);
+            animation: playerBuzz 0.5s ease-in-out;
+        }
+
+        @keyframes playerBuzz {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .player-name {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .player-score {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .player-status {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Game Controls */
+        .game-controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .reading-controls {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .reading-controls h4 {
+            margin: 0 0 8px 0;
+            font-size: 0.9rem;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .reading-speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .reading-speed-control label {
+            font-size: 0.8rem;
+            color: #64748b;
+            min-width: 45px;
+        }
+
+        .reading-speed-control input[type="range"] {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: #e2e8f0;
+            outline: none;
+        }
+
+        .reading-speed-control input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+
+        .reading-speed-control span {
+            font-size: 0.8rem;
+            color: #374151;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .reading-controls-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .reading-controls-buttons button {
+            flex: 1;
+            padding: 6px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reading-controls-buttons .pause-btn {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .reading-controls-buttons .pause-btn:hover {
+            background: #d97706;
+        }
+
+        .reading-controls-buttons .resume-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .reading-controls-buttons .resume-btn:hover {
+            background: #059669;
+        }
+
+        .reading-controls-buttons .stop-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .reading-controls-buttons .stop-btn:hover {
+            background: #dc2626;
+        }
+
+        .control-button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-host {
+            background: #38a169;
+            color: white;
+        }
+
+        .control-host:hover {
+            background: #2f855a;
+        }
+
+        .control-leave {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .control-leave:hover {
+            background: #c53030;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .competition-main {
+                grid-template-columns: 1fr;
+            }
+
+            .competition-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .question-area {
+                padding: 20px;
+            }
+
+            .buzzer-button {
+                width: 150px;
+                height: 150px;
+                font-size: 1.2rem;
+            }
+
+            .answer-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading and States */
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message-banner {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message-banner.success {
+            background: #38a169;
+        }
+
+        .message-banner.error {
+            background: #e53e3e;
+        }
+
+        .message-banner.warning {
+            background: #d69e2e;
+        }
+
+        /* Room Browser Styles */
+        .room-browser {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .room-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .room-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .room-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .room-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .room-details {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="competition-container">
+        <!-- Header -->
+        <div class="competition-header">
+            <div class="game-info">
+                <h1 id="gameTitle">QuizBowl Competition</h1>
+                <div class="game-status" id="gameStatus">Waiting to join game...</div>
+            </div>
+            <div class="connection-status">
+                <button onclick="returnToDashboard()" class="dashboard-button" style="margin-right: 15px; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s ease; display: inline-flex; align-items: center; gap: 6px;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">← Return to Dashboard</button>
+            </div>
+        </div>
+
+        <!-- Room Browser (initially visible) -->
+        <div id="roomBrowser" class="room-browser">
+            <h2 class="panel-header">Available Game Rooms</h2>
+            <div class="room-list" id="roomList">
+                <div class="loading-spinner"></div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn btn-primary" onclick="createNewRoom()">Create New Room</button>
+                <button class="btn btn-secondary" onclick="refreshRooms()">Refresh Rooms</button>
+            </div>
+        </div>
+
+        <!-- Main Competition Area (initially hidden) -->
+        <div id="competitionMain" class="competition-main" style="display: none;">
+            <!-- Question Area -->
+            <div class="question-area">
+                <div class="question-header">
+                    <div class="question-number" id="questionNumber">Question 1</div>
+                    <div class="question-category" id="questionCategory">Literature</div>
+                </div>
+
+                <div class="question-content" id="questionText">
+                    Waiting for game to start...
+                </div>
+
+                <!-- Enhanced Buzzer -->
+                <div class="buzzer-area">
+                    <button id="buzzerButton" class="buzzer-button disabled" onclick="buzz()">
+                        BUZZ IN
+                    </button>
+                    <div id="buzzerStatus" class="buzzer-status">Press SPACE to buzz</div>
+                </div>
+
+                <!-- Answer Input Area -->
+                <div id="answerArea" class="answer-area">
+                    <div class="answer-instructions" style="margin-bottom: 10px; padding: 8px; background: #f7fafc; border-radius: 6px; border-left: 4px solid #3b82f6; font-size: 14px; color: #2d3748;">
+                        💡 <strong>How to answer:</strong> First buzz in by pressing SPACE or clicking "BUZZ IN", then type your answer below.
+                    </div>
+                    <input type="text" id="answerInput" class="answer-input" placeholder="Enter your answer..." maxlength="200">
+                    <div class="answer-buttons">
+                        <button class="btn btn-primary" onclick="submitAnswer()">Submit Answer</button>
+                        <button class="btn btn-secondary" onclick="skipAnswer()">Pass</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Players Panel -->
+            <div class="players-panel">
+                <div class="panel-header">Players</div>
+                <div id="playersList"></div>
+
+                <div class="game-controls">
+                    <!-- Reading Speed Controls (visible to host) -->
+                    <div id="readingControls" class="reading-controls" style="display: none;">
+                        <h4>📖 Question Reading</h4>
+                        <div class="reading-speed-control">
+                            <label>Speed:</label>
+                            <input type="range" id="readingSpeedSlider" min="80" max="200" value="160" 
+                                   onchange="updateReadingSpeed(this.value)">
+                            <span id="readingSpeedDisplay">160 WPM</span>
+                        </div>
+                        <div class="reading-controls-buttons">
+                            <button class="pause-btn" onclick="pauseQuestionReading()">⏸ Pause</button>
+                            <button class="resume-btn" onclick="resumeQuestionReading()">▶ Resume</button>
+                            <button class="stop-btn" onclick="showFullQuestion()">📖 Show All</button>
+                        </div>
+                    </div>
+                    
+                    <button id="startGameButton" class="control-button control-host" onclick="startGame()" style="display: none;">
+                        Start Game
+                    </button>
+                    <button class="control-button control-leave" onclick="leaveRoom()">
+                        Leave Room
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        // Phase 4: Enhanced Competition Interface
+        class CompetitionInterface {
+            constructor() {
+                this.socket = null;
+                this.currentUser = null;
+                this.currentRoom = null;
+                this.gameState = null;
+                this.isHost = false;
+                this.soundEnabled = true;
+                
+                // 🔧 BUZZER STATE MANAGEMENT
+                this.buzzState = {
+                    hasBuzzed: false,
+                    isProcessing: false,
+                    lastBuzzTime: 0,
+                    debounceDelay: 500 // 500ms debounce
+                };
+                
+                // 📖 PROGRESSIVE READING STATE
+                this.readingState = {
+                    isReading: false,
+                    isPaused: false,
+                    currentWordIndex: 0,
+                    totalWords: 0,
+                    readingSpeed: 160, // Words per minute
+                    readingInterval: null
+                };
+                
+                this.init();
+            }
+
+            init() {
+                this.setupSocket();
+                this.setupKeyboardShortcuts();
+                this.loadRooms();
+                
+                // Check for stored token (support both auth_token from main login and quiz_token)
+                const token = localStorage.getItem('quiz_token') || localStorage.getItem('auth_token');
+                if (token) {
+                    // Store as quiz_token for consistency within competition interface
+                    localStorage.setItem('quiz_token', token);
+                    this.authenticateUser(token);
+                } else {
+                    this.showLoginPrompt();
+                }
+            }
+
+            setupSocket() {
+                this.socket = io({
+                    transports: ['websocket', 'polling']
+                });
+
+                this.socket.on('connect', () => {
+                    console.log('✅ Connected to server');
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('❌ Disconnected from server');
+                });
+
+                // Game event listeners
+                this.socket.on('room_updated', (state) => this.handleRoomUpdate(state));
+                this.socket.on('buzz_registered', (data) => this.handleBuzzRegistered(data));
+                this.socket.on('buzz_rejected', (data) => this.handleBuzzRejected(data));
+                this.socket.on('answer_result', (data) => this.handleAnswerResult(data));
+                this.socket.on('game_started', (state) => this.handleGameStarted(state));
+                this.socket.on('game_finished', (data) => this.handleGameFinished(data));
+                this.socket.on('room_created', (data) => this.handleRoomCreated(data));
+                this.socket.on('error', (error) => this.showMessage(error.message, 'error'));
+                
+                // 🔧 SESSION MANAGEMENT: Handle session replacement
+                this.socket.on('session_replaced', (data) => {
+                    console.warn('⚠️ Session replaced:', data.message);
+                    this.showMessage('⚠️ ' + data.message, 'warning');
+                    
+                    // Redirect back to login after a delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                });
+            }
+
+            authenticateUser(token) {
+                this.socket.emit('authenticate', { token });
+                
+                this.socket.on('authenticated', (data) => {
+                    this.currentUser = data.user;
+                    console.log('✅ Authenticated as:', this.currentUser.username);
+                    this.loadRooms();
+                });
+
+                this.socket.on('authentication_failed', (error) => {
+                    console.error('❌ Authentication failed:', error);
+                    // Remove both token keys
+                    localStorage.removeItem('quiz_token');
+                    localStorage.removeItem('auth_token');
+                    this.showLoginPrompt();
+                });
+            }
+
+            showLoginPrompt() {
+                const username = prompt('Enter your username (or demo account: admin, student1, coach1):');
+                if (!username) return;
+
+                const password = prompt('Enter your password:');
+                if (!password) return;
+
+                this.login(username, password);
+            }
+
+            async login(username, password) {
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            login: username, // Support both username and email
+                            password 
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.token) {
+                        // Store token with both keys for consistency across interfaces
+                        localStorage.setItem('quiz_token', data.token);
+                        localStorage.setItem('auth_token', data.token);
+                        this.authenticateUser(data.token);
+                        this.showMessage('Login successful!', 'success');
+                    } else {
+                        this.showMessage('Login failed: ' + (data.error || 'Unknown error'), 'error');
+                        setTimeout(() => this.showLoginPrompt(), 1000);
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.showMessage('Login failed: Network error', 'error');
+                }
+            }
+
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                        e.preventDefault();
+                        this.buzz();
+                    }
+                    if (e.code === 'Enter' && e.target.id === 'answerInput') {
+                        this.submitAnswer();
+                    }
+                });
+            }
+
+            showMessage(message, type = 'info') {
+                const container = document.querySelector('.competition-container');
+                const banner = document.createElement('div');
+                banner.className = `message-banner ${type}`;
+                banner.textContent = message;
+                
+                container.insertBefore(banner, container.firstChild);
+                
+                setTimeout(() => {
+                    if (banner.parentNode) {
+                        banner.parentNode.removeChild(banner);
+                    }
+                }, 5000);
+            }
+
+            async loadRooms() {
+                try {
+                    const token = localStorage.getItem('quiz_token');
+                    const response = await fetch('/api/rooms', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.displayRooms(data.rooms);
+                    } else {
+                        this.showMessage('Failed to load rooms', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error loading rooms:', error);
+                    this.showMessage('Network error loading rooms', 'error');
+                }
+            }
+
+            displayRooms(rooms) {
+                const roomList = document.getElementById('roomList');
+                
+                if (rooms.length === 0) {
+                    roomList.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No active rooms. Create one to get started!</div>';
+                    return;
+                }
+
+                roomList.innerHTML = rooms.map(room => `
+                    <div class="room-card" onclick="window.competitionInterface.joinRoom('${room.id}')">
+                        <div class="room-name">${room.name}</div>
+                        <div class="room-details">
+                            <span>Players: ${room.playerCount}</span>
+                            <span>Status: ${room.gameState}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            joinRoom(roomId) {
+                if (!this.currentUser) {
+                    this.showMessage('Please log in first', 'warning');
+                    return;
+                }
+
+                console.log(`🎯 Joining room: ${roomId}`);
+                this.socket.emit('join_room', { roomId });
+            }
+
+            createNewRoom() {
+                if (!this.currentUser) {
+                    this.showMessage('Please log in first', 'warning');
+                    return;
+                }
+
+                const roomName = prompt('Enter room name:') || `${this.currentUser.username}'s Room`;
+                const questionCount = parseInt(prompt('Number of questions (5-20):', '10') || 10);
+                
+                console.log(`🎯 Creating room: ${roomName} with ${questionCount} questions`);
+                this.showMessage('Creating room...', 'info');
+                this.socket.emit('create_room', {
+                    name: roomName,
+                    settings: {
+                        questionCount: Math.min(Math.max(questionCount, 5), 20),
+                        categories: ['All'],
+                        difficulty: 'medium'
+                    }
+                });
+            }
+
+            handleRoomCreated(data) {
+                console.log('✅ Room created:', data);
+                this.showMessage(`Room "${data.room.name}" created successfully! You are the host.`, 'success');
+                this.joinRoom(data.room.id);
+            }
+
+            handleRoomUpdate(state) {
+                console.log('🔄 Room updated:', state);
+                console.log('📝 Current question:', state.currentQuestion);
+                console.log('🎮 Game state:', state.gameState);
+                console.log('� Buzzer state:', state.buzzer);
+                console.log('�👑 Host ID:', state.hostId, 'Current user ID:', this.currentUser?.id);
+                
+                this.gameState = state;
+                this.currentRoom = state.id;
+                
+                // 🔧 GAME STATE CHECK: If game is finished, only update once then stop processing
+                if (state.gameState === 'FINISHED') {
+                    console.log('🏁 Game is finished - limiting room updates');
+                    
+                    // Just update basic info and player scores, skip question/buzzer updates
+                    this.updateGameInfo(state);
+                    this.updatePlayersList(state.players);
+                    
+                    // Hide start button and reading controls
+                    const startButton = document.getElementById('startGameButton');
+                    if (startButton) startButton.style.display = 'none';
+                    
+                    const readingControls = document.getElementById('readingControls');
+                    if (readingControls) readingControls.style.display = 'none';
+                    
+                    return; // Exit early - don't process question or buzzer updates
+                }
+                
+                // Show competition interface
+                document.getElementById('roomBrowser').style.display = 'none';
+                document.getElementById('competitionMain').style.display = 'grid';
+                
+                // Update UI
+                this.updateGameInfo(state);
+                this.updatePlayersList(state.players);
+                this.updateQuestion(state.currentQuestion);
+                this.updateBuzzerState(state);
+                
+                // Check if user is host
+                this.isHost = state.hostId === this.currentUser?.id;
+                const startButton = document.getElementById('startGameButton');
+                const shouldShowStartButton = this.isHost && state.gameState === 'WAITING';
+                startButton.style.display = shouldShowStartButton ? 'block' : 'none';
+                
+                // Show/hide reading controls for host during active game
+                const readingControls = document.getElementById('readingControls');
+                const shouldShowReadingControls = this.isHost && state.gameState === 'ACTIVE';
+                readingControls.style.display = shouldShowReadingControls ? 'block' : 'none';
+                
+                // Show helpful messages based on game state
+                if (state.gameState === 'WAITING' && this.isHost) {
+                    this.showMessage('You are the host! Click "Start Game" to begin the competition.', 'info');
+                } else if (state.gameState === 'WAITING' && !this.isHost) {
+                    this.showMessage('Waiting for the host to start the game...', 'info');
+                } else if (state.gameState === 'ACTIVE' && !state.currentQuestion) {
+                    this.showMessage('Game is active but no question loaded yet...', 'warning');
+                } else if (state.gameState === 'ACTIVE' && state.currentQuestion) {
+                    this.showMessage('Game active! Press SPACE to buzz in or click the BUZZ IN button.', 'success');
+                }
+            }
+
+            updateGameInfo(state) {
+                document.getElementById('gameTitle').textContent = state.name;
+                
+                const statusMap = {
+                    'WAITING': 'Waiting for host to start',
+                    'ACTIVE': 'Question in progress',
+                    'BUZZING': 'Someone buzzed in!',
+                    'FINISHED': 'Game completed'
+                };
+                
+                document.getElementById('gameStatus').textContent = statusMap[state.gameState] || state.gameState;
+            }
+
+            updatePlayersList(players) {
+                const playersList = document.getElementById('playersList');
+                
+                playersList.innerHTML = players.map(player => {
+                    const isCurrentUser = player.id === this.currentUser?.id;
+                    const isBuzzed = this.gameState?.buzzer?.buzzedPlayer === player.id;
+                    
+                    let cardClass = 'player-card';
+                    if (isCurrentUser) cardClass += ' current-user';
+                    if (isBuzzed) cardClass += ' buzzed';
+                    
+                    let statusText = player.status || 'Ready';
+                    if (isBuzzed) statusText = '🔔 Buzzed in!';
+                    
+                    return `
+                        <div class="${cardClass}">
+                            <div class="player-name">${player.username} ${isCurrentUser ? '(You)' : ''}</div>
+                            <div class="player-score">${player.score || 0} points</div>
+                            <div class="player-status">${statusText}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            updateQuestion(question) {
+                console.log('📋 Updating question display:', question);
+                
+                // 🔧 GAME STATE CHECK: Don't update questions when game is finished
+                if (this.gameState?.gameState === 'FINISHED') {
+                    console.log('🏁 Game is finished - stopping question updates');
+                    this.stopProgressiveReading();
+                    return;
+                }
+                
+                if (question) {
+                    const questionNum = question.questionNumber || question.id || 1;
+                    const category = question.category || 'General';
+                    const text = question.question || question.text || 'Loading question...';
+                    
+                    console.log(`📋 Displaying Q${questionNum}: ${category} - ${text.substring(0, 50)}...`);
+                    
+                    document.getElementById('questionNumber').textContent = `Question ${questionNum}`;
+                    document.getElementById('questionCategory').textContent = category;
+                    
+                    // Store the full question text and start progressive reading
+                    this.currentQuestionText = text;
+                    this.startProgressiveReading();
+                } else {
+                    console.log('📋 No question to display - showing waiting message');
+                    document.getElementById('questionNumber').textContent = 'Question --';
+                    document.getElementById('questionCategory').textContent = 'Waiting';
+                    document.getElementById('questionText').textContent = 'Waiting for next question... (Game must be started first)';
+                    this.stopProgressiveReading();
+                }
+            }
+
+            startProgressiveReading() {
+                this.stopProgressiveReading(); // Clear any existing timer
+                
+                const questionTextElement = document.getElementById('questionText');
+                const fullText = this.currentQuestionText;
+                
+                // Split into words for more natural reading pace
+                const words = fullText.split(' ');
+                let currentWordIndex = 0;
+                
+                // Reading speed: get from slider or default to 160 WPM
+                const speedSlider = document.getElementById('readingSpeedSlider');
+                const wordsPerMinute = speedSlider ? parseInt(speedSlider.value) : 160;
+                const msPerWord = (60 * 1000) / wordsPerMinute;
+                
+                questionTextElement.textContent = ''; // Start with empty text
+                
+                // Add reading indicator
+                const readingIndicator = document.createElement('span');
+                readingIndicator.className = 'reading-indicator';
+                readingIndicator.textContent = ' ●';
+                readingIndicator.style.color = '#ef4444';
+                readingIndicator.style.animation = 'pulse 1s infinite';
+                
+                this.readingTimer = setInterval(() => {
+                    if (currentWordIndex < words.length && !this.isReadingPaused) {
+                        // Add the next word
+                        const currentText = words.slice(0, currentWordIndex + 1).join(' ');
+                        questionTextElement.textContent = currentText;
+                        
+                        // Add reading indicator after current text
+                        if (currentWordIndex < words.length - 1) {
+                            questionTextElement.appendChild(readingIndicator);
+                        }
+                        
+                        currentWordIndex++;
+                    } else if (currentWordIndex >= words.length) {
+                        // Reading complete
+                        questionTextElement.textContent = fullText;
+                        this.stopProgressiveReading();
+                        console.log('📖 Question reading completed');
+                    }
+                }, msPerWord);
+                
+                console.log(`📖 Started reading question: ${words.length} words at ${wordsPerMinute} WPM`);
+            }
+
+            stopProgressiveReading() {
+                if (this.readingTimer) {
+                    clearInterval(this.readingTimer);
+                    this.readingTimer = null;
+                }
+                this.isReadingPaused = false;
+                
+                // Remove reading indicator
+                const indicator = document.querySelector('.reading-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+
+            pauseReading() {
+                this.isReadingPaused = true;
+                console.log('📖 Reading paused for buzzer');
+                
+                // Change indicator color to show paused state
+                const indicator = document.querySelector('.reading-indicator');
+                if (indicator) {
+                    indicator.style.color = '#f59e0b';
+                    indicator.textContent = ' ⏸';
+                }
+            }
+
+            resumeReading() {
+                this.isReadingPaused = false;
+                console.log('📖 Reading resumed');
+                
+                // Restore reading indicator
+                const indicator = document.querySelector('.reading-indicator');
+                if (indicator) {
+                    indicator.style.color = '#ef4444';
+                    indicator.textContent = ' ●';
+                }
+            }
+
+            updateBuzzerState(state) {
+                console.log('🔧 updateBuzzerState called with:', state);
+                
+                // 🔧 GAME STATE CHECK: Don't update buzzer when game is finished
+                if (state?.gameState === 'FINISHED') {
+                    console.log('🏁 Game is finished - stopping buzzer updates');
+                    this.stopProgressiveReading();
+                    
+                    // Set final state for finished game
+                    const buzzerButton = document.getElementById('buzzerButton');
+                    const buzzerStatus = document.getElementById('buzzerStatus');
+                    const answerArea = document.getElementById('answerArea');
+                    const answerInput = document.getElementById('answerInput');
+                    
+                    if (buzzerButton) {
+                        buzzerButton.className = 'buzzer-button disabled';
+                        buzzerButton.textContent = 'GAME FINISHED';
+                    }
+                    if (buzzerStatus) {
+                        buzzerStatus.textContent = 'Game completed! Check final scores above.';
+                    }
+                    if (answerArea) {
+                        answerArea.className = 'answer-area';
+                    }
+                    if (answerInput) {
+                        answerInput.disabled = true;
+                        answerInput.placeholder = 'Game finished';
+                    }
+                    return;
+                }
+                
+                const buzzerButton = document.getElementById('buzzerButton');
+                const buzzerStatus = document.getElementById('buzzerStatus');
+                const answerArea = document.getElementById('answerArea');
+                const answerInput = document.getElementById('answerInput');
+                
+                console.log('🔧 Elements found:', {
+                    buzzerButton: !!buzzerButton,
+                    buzzerStatus: !!buzzerStatus,
+                    answerArea: !!answerArea,
+                    answerInput: !!answerInput
+                });
+                
+                if (!state) {
+                    console.log('⚠️ No state provided to updateBuzzerState');
+                    return;
+                }
+                
+                // Handle the actual server state format
+                const gameState = state.gameState;
+                const buzzerData = state.buzzer || {};
+                const buzzerIsActive = buzzerData.isActive || false;
+                const buzzedPlayerId = buzzerData.buzzedPlayer;
+                
+                const canBuzz = gameState === 'ACTIVE' && !buzzerIsActive;
+                const userBuzzed = buzzedPlayerId === this.currentUser?.id;  // Compare IDs, not usernames
+                const someoneBuzzed = buzzerIsActive || gameState === 'BUZZING';
+                
+                // 🔧 CRITICAL FIX: Reset local buzz state when server says buzzer is not active
+                if (!buzzerIsActive) {
+                    console.log('🔄 Resetting local buzz state - server buzzer not active');
+                    this.buzzState.hasBuzzed = false;
+                    this.buzzState.isProcessing = false;
+                } else if (userBuzzed) {
+                    // User successfully buzzed - mark as buzzed
+                    this.buzzState.hasBuzzed = true;
+                    this.buzzState.isProcessing = false;
+                }
+                
+                // Handle reading state based on buzzer status
+                if (buzzerIsActive && !this.wasReadingPaused) {
+                    // Someone buzzed - pause reading if not already paused
+                    this.pauseReading();
+                    this.wasReadingPaused = true;
+                } else if (!buzzerIsActive && this.wasReadingPaused && gameState === 'ACTIVE') {
+                    // Buzzer reset and game still active - resume reading
+                    this.resumeReading();
+                    this.wasReadingPaused = false;
+                }
+                
+                if (userBuzzed) {
+                    buzzerButton.className = 'buzzer-button buzzing';
+                    buzzerButton.textContent = 'YOU BUZZED!';
+                    buzzerStatus.textContent = 'Enter your answer below ⬇️';
+                    answerArea.className = 'answer-area active';
+                    answerInput.disabled = false;
+                    answerInput.placeholder = 'Type your answer here...';
+                    document.getElementById('answerInput').focus();
+                } else if (someoneBuzzed) {
+                    console.log('🟨 Someone else buzzed');
+                    buzzerButton.className = 'buzzer-button disabled';
+                    buzzerButton.textContent = 'SOMEONE BUZZED';
+                    buzzerStatus.textContent = 'Waiting for answer...';
+                    answerArea.className = 'answer-area';
+                    answerInput.disabled = true;
+                    answerInput.placeholder = 'Someone else is answering...';
+                } else if (canBuzz) {
+                    console.log('🟢 Ready to buzz');
+                    buzzerButton.className = 'buzzer-button';
+                    buzzerButton.textContent = 'BUZZ IN';
+                    buzzerStatus.textContent = 'Press SPACE to buzz or click button above ⬆️';
+                    answerArea.className = 'answer-area';
+                    answerInput.disabled = true;
+                    answerInput.placeholder = 'Buzz in first to unlock answer input';
+                } else {
+                    console.log('🔴 Waiting state');
+                    buzzerButton.className = 'buzzer-button disabled';
+                    buzzerButton.textContent = 'WAIT';
+                    buzzerStatus.textContent = 'Waiting for game to start...';
+                    answerArea.className = 'answer-area';
+                    answerInput.disabled = true;
+                    answerInput.placeholder = 'Game not ready for answers yet';
+                }
+            }
+
+            buzz() {
+                console.log('🔔 Buzz function called');
+                console.log('🔍 Current buzz state:', {
+                    hasBuzzed: this.buzzState.hasBuzzed,
+                    isProcessing: this.buzzState.isProcessing,
+                    lastBuzzTime: this.buzzState.lastBuzzTime,
+                    timeSinceLastBuzz: Date.now() - this.buzzState.lastBuzzTime
+                });
+                
+                // 🔧 DEBOUNCING: Check if too soon since last buzz attempt
+                const now = Date.now();
+                if (now - this.buzzState.lastBuzzTime < this.buzzState.debounceDelay) {
+                    console.log('🚫 Buzz debounced - too soon since last attempt');
+                    return;
+                }
+                
+                // 🔧 STATE CHECK: Already buzzed or processing
+                if (this.buzzState.hasBuzzed || this.buzzState.isProcessing) {
+                    console.log('🚫 Already buzzed or processing buzz');
+                    return;
+                }
+                
+                console.log('🎮 Game state check:', {
+                    hasGameState: !!this.gameState,
+                    gameState: this.gameState?.gameState,
+                    buzzerActive: this.gameState?.buzzer?.isActive,
+                    currentRoom: this.currentRoom,
+                    currentUser: this.currentUser?.username
+                });
+                
+                if (!this.gameState) {
+                    console.log('❌ No game state - cannot buzz');
+                    this.showMessage('Game not started yet', 'warning');
+                    return;
+                }
+                
+                if (this.gameState.gameState !== 'ACTIVE') {
+                    console.log('❌ Game not active - current state:', this.gameState.gameState);
+                    this.showMessage('Game is not active', 'warning');
+                    return;
+                }
+                
+                if (this.gameState.buzzer.isActive) {
+                    console.log('❌ Buzzer already active');
+                    this.showMessage('Someone has already buzzed in', 'warning');
+                    return;
+                }
+                
+                // 🔧 PAUSE READING: Stop question reading when buzzing
+                this.pauseReading();
+                
+                // 🔧 UPDATE BUZZ STATE: Only mark as processing, not as buzzed yet
+                this.buzzState.isProcessing = true;
+                this.buzzState.lastBuzzTime = now;
+                
+                console.log('✅ Buzzing in!');
+                this.socket.emit('buzz', {
+                    roomId: this.currentRoom,
+                    timestamp: now
+                });
+                
+                // Visual feedback
+                this.createRippleEffect();
+                this.playBuzzSound();
+            }
+
+            createRippleEffect() {
+                const button = document.getElementById('buzzerButton');
+                const ripple = document.createElement('span');
+                ripple.className = 'buzzer-ripple';
+                
+                const rect = button.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (rect.width / 2 - size / 2) + 'px';
+                ripple.style.top = (rect.height / 2 - size / 2) + 'px';
+                
+                button.appendChild(ripple);
+                
+                setTimeout(() => {
+                    if (ripple.parentNode) {
+                        ripple.parentNode.removeChild(ripple);
+                    }
+                }, 600);
+            }
+            
+            debugBuzz() {
+                console.log('🐛=== DEBUG BUZZ ===');
+                console.log('Current user:', this.currentUser);
+                console.log('Current room:', this.currentRoom);
+                console.log('Game state:', this.gameState);
+                console.log('Socket connected:', this.socket?.connected);
+                console.log('=================');
+                
+                if (!this.currentUser) {
+                    alert('❌ No current user - please log in');
+                    return;
+                }
+                
+                if (!this.currentRoom) {
+                    alert('❌ No current room - please join a room');
+                    return;
+                }
+                
+                if (!this.gameState) {
+                    alert('❌ No game state - game may not be started');
+                    return;
+                }
+                
+                if (this.gameState.gameState !== 'ACTIVE') {
+                    alert(`❌ Game not active - current state: ${this.gameState.gameState}`);
+                    return;
+                }
+                
+                if (this.gameState.buzzer.isActive) {
+                    alert('❌ Buzzer already active');
+                    return;
+                }
+                
+                alert('✅ All conditions met - calling buzz()');
+                this.buzz();
+            }
+
+            playBuzzSound() {
+                if (!this.soundEnabled) return;
+                
+                // Create a simple buzz sound using Web Audio API
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.value = 0.1;
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                } catch (error) {
+                    console.log('Sound not available');
+                }
+            }
+
+            submitAnswer() {
+                const answerInput = document.getElementById('answerInput');
+                
+                // Check if input is disabled (user hasn't buzzed in)
+                if (answerInput.disabled) {
+                    this.showMessage('You must buzz in first before answering!', 'warning');
+                    return;
+                }
+                
+                const answer = answerInput.value.trim();
+                
+                if (!answer) {
+                    this.showMessage('Please enter an answer', 'warning');
+                    return;
+                }
+
+                console.log(`💬 Submitting answer: ${answer}`);
+                this.socket.emit('submit_answer', {
+                    roomId: this.currentRoom,
+                    answer: answer
+                });
+
+                answerInput.value = '';
+                answerInput.disabled = true;
+                this.showMessage('Answer submitted!', 'info');
+            }
+
+            skipAnswer() {
+                console.log('⏭️ Skipping answer');
+                this.socket.emit('submit_answer', {
+                    roomId: this.currentRoom,
+                    answer: '',
+                    skip: true
+                });
+            }
+
+            startGame() {
+                if (this.isHost) {
+                    console.log('🎮 Starting game');
+                    this.socket.emit('start_game', { roomId: this.currentRoom });
+                }
+            }
+
+            leaveRoom() {
+                if (this.currentRoom) {
+                    console.log('🚪 Leaving room');
+                    this.socket.emit('leave_room', { roomId: this.currentRoom });
+                    
+                    // Show room browser
+                    document.getElementById('roomBrowser').style.display = 'block';
+                    document.getElementById('competitionMain').style.display = 'none';
+                    
+                    this.currentRoom = null;
+                    this.gameState = null;
+                    this.loadRooms();
+                }
+            }
+
+            handleBuzzRegistered(data) {
+                console.log('🔔 Buzz registered:', data);
+                if (data.success) {
+                    this.showMessage(`${data.username} buzzed in!`, 'info');
+                    
+                    // 🔧 FIX: Update buzzer state when buzz is registered
+                    if (data.username === this.currentUser?.username) {
+                        console.log('🎯 User successfully buzzed in - updating buzzer state');
+                        
+                        // 🔧 CONFIRM BUZZ STATE: Mark as successfully buzzed
+                        this.buzzState.hasBuzzed = true;
+                        this.buzzState.isProcessing = false;
+                        
+                        // Create the state object that matches server format (using user ID)
+                        const buzzerState = {
+                            gameState: 'BUZZING',
+                            buzzer: {
+                                isActive: true,
+                                buzzedPlayer: this.currentUser.id  // Use ID, not username
+                            }
+                        };
+                        
+                        this.updateBuzzerState(buzzerState);
+                        
+                        // Also enable answer input immediately
+                        const answerInput = document.getElementById('answerInput');
+                        if (answerInput) {
+                            answerInput.disabled = false;
+                            answerInput.focus();
+                            console.log('✅ Answer input enabled and focused');
+                        }
+                    } else {
+                        // 🔧 RESET PROCESSING: Someone else buzzed, reset our processing state
+                        this.buzzState.isProcessing = false;
+                    }
+                }
+            }
+
+            handleBuzzRejected(data) {
+                console.log('❌ Buzz rejected:', data);
+                
+                // 🔧 RESET PROCESSING STATE: Buzz was rejected, allow retry
+                this.buzzState.isProcessing = false;
+                console.log('🔄 Buzz processing reset - can try again');
+                
+                this.showMessage(`Buzz rejected: ${data.reason}`, 'warning');
+            }
+
+            handleAnswerResult(data) {
+                console.log('💬 Answer result:', data);
+                
+                const message = data.correct ? 
+                    `✅ ${data.username} got it right! (+${data.points} points)` :
+                    `❌ ${data.username} got it wrong. (-${data.points} points)`;
+                
+                this.showMessage(message, data.correct ? 'success' : 'error');
+            }
+
+            handleGameStarted(state) {
+                console.log('🎮 Game started:', state);
+                console.log('📋 First question should be:', state.currentQuestion);
+                this.showMessage('Game started! First question should appear now.', 'success');
+                
+                // Trigger an immediate room update to ensure question displays
+                this.handleRoomUpdate(state);
+            }
+
+            handleGameFinished(data) {
+                console.log('🏁 Game finished:', data);
+                
+                // 🔧 IMMEDIATE CLEANUP: Stop all game activities
+                this.stopProgressiveReading();
+                console.log('🛑 Stopped progressive reading due to game finish');
+                
+                // Update local game state to finished
+                if (this.gameState) {
+                    this.gameState.gameState = 'FINISHED';
+                }
+                
+                let message = '🏁 Game Over!\n\nFinal Scores:\n';
+                
+                // Convert finalScores object to array and sort by score
+                const sortedPlayers = Object.entries(data.finalScores)
+                    .map(([userId, score]) => {
+                        // Find player name from current game state or use ID as fallback
+                        const playerData = this.gameState?.players?.find(p => p.id == userId);
+                        return {
+                            userId: userId,
+                            username: playerData?.name || `Player ${userId}`,
+                            score: score
+                        };
+                    })
+                    .sort((a, b) => b.score - a.score); // Sort by score descending
+                
+                sortedPlayers.forEach((player, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '   ';
+                    message += `${medal} ${player.username}: ${player.score} points\n`;
+                });
+                
+                // Add winner information if available
+                if (data.winner && data.winner.length >= 2) {
+                    const winnerUserId = data.winner[0];
+                    const winnerScore = data.winner[1];
+                    const winnerData = this.gameState?.players?.find(p => p.id == winnerUserId);
+                    const winnerName = winnerData?.name || `Player ${winnerUserId}`;
+                    message += `\n🎉 Winner: ${winnerName} with ${winnerScore} points!`;
+                }
+                
+                // Set UI to finished state
+                const questionTextElement = document.getElementById('questionText');
+                if (questionTextElement) {
+                    questionTextElement.textContent = '🏁 Game Completed! Thanks for playing!';
+                }
+                
+                alert(message);
+            }
+
+            refreshRooms() {
+                this.loadRooms();
+                this.showMessage('Rooms refreshed', 'info');
+            }
+        }
+
+        // Global functions for onclick handlers
+        function createNewRoom() {
+            window.competitionInterface.createNewRoom();
+        }
+
+        function refreshRooms() {
+            window.competitionInterface.refreshRooms();
+        }
+
+        function buzz() {
+            window.competitionInterface.buzz();
+        }
+
+        function submitAnswer() {
+            window.competitionInterface.submitAnswer();
+        }
+
+        function skipAnswer() {
+            window.competitionInterface.skipAnswer();
+        }
+
+        function startGame() {
+            window.competitionInterface.startGame();
+        }
+
+        function leaveRoom() {
+            window.competitionInterface.leaveRoom();
+        }
+        
+        // Reading control functions (global scope for onclick handlers)
+        function updateReadingSpeed(value) {
+            document.getElementById('readingSpeedDisplay').textContent = value + ' WPM';
+            console.log('📖 Reading speed updated to:', value, 'WPM');
+            
+            // If currently reading, restart with new speed
+            if (window.competitionInterface && window.competitionInterface.readingTimer) {
+                window.competitionInterface.startProgressiveReading();
+            }
+        }
+
+        function pauseQuestionReading() {
+            if (window.competitionInterface) {
+                window.competitionInterface.pauseReading();
+                console.log('📖 Reading paused by host');
+            }
+        }
+
+        function resumeQuestionReading() {
+            if (window.competitionInterface) {
+                window.competitionInterface.resumeReading();
+                console.log('📖 Reading resumed by host');
+            }
+        }
+
+        function showFullQuestion() {
+            if (window.competitionInterface && window.competitionInterface.currentQuestionText) {
+                document.getElementById('questionText').textContent = window.competitionInterface.currentQuestionText;
+                window.competitionInterface.stopProgressiveReading();
+                console.log('📖 Full question revealed by host');
+            }
+        }
+
+        function returnToDashboard() {
+            // Get user data from localStorage if available
+            const userData = localStorage.getItem('user_data');
+            let user = 'User';
+            let role = 'STUDENT';
+            
+            if (userData) {
+                try {
+                    const parsedData = JSON.parse(userData);
+                    user = parsedData.username || 'User';
+                    role = parsedData.role || 'STUDENT';
+                } catch (e) {
+                    console.log('Could not parse user data');
+                }
+            }
+            
+            window.location.href = `/dashboard?user=${encodeURIComponent(user)}&role=${role}`;
+        }
+
+        // Initialize the interface
+        window.competitionInterface = new CompetitionInterface();
+    </script>
+</body>
+</html>

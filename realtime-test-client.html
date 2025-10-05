@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizBowlHub - Real-time Test Client</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #0f172a;
+            color: white;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 12px;
+        }
+        .section {
+            background: #1e293b;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .status {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            font-weight: 500;
+        }
+        .status.connected { background: #065f46; color: #10b981; }
+        .status.disconnected { background: #7f1d1d; color: #f87171; }
+        .status.authenticated { background: #1e40af; color: #60a5fa; }
+        .status.error { background: #7c2d12; color: #fb923c; }
+        .button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .button:hover { background: #2563eb; }
+        .button:disabled { background: #374151; cursor: not-allowed; }
+        .button.danger { background: #dc2626; }
+        .button.danger:hover { background: #b91c1c; }
+        .button.success { background: #059669; }
+        .button.success:hover { background: #047857; }
+        .input {
+            background: #374151;
+            border: 1px solid #4b5563;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 0.25rem;
+            width: 200px;
+        }
+        .log {
+            background: #111827;
+            padding: 1rem;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+            border: 1px solid #374151;
+        }
+        .log-entry {
+            margin: 0.25rem 0;
+            padding: 0.25rem;
+            border-radius: 3px;
+        }
+        .log-entry.info { background: #1e293b; }
+        .log-entry.success { background: #064e3b; }
+        .log-entry.error { background: #7f1d1d; }
+        .log-entry.warning { background: #78350f; }
+        .buzzer {
+            font-size: 2rem;
+            padding: 2rem;
+            background: #dc2626;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin: 1rem 0;
+        }
+        .buzzer:hover { background: #b91c1c; transform: scale(1.02); }
+        .buzzer:active { transform: scale(0.98); }
+        .buzzer:disabled { background: #374151; cursor: not-allowed; transform: none; }
+        .game-info {
+            background: #064e3b;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+        .question {
+            background: #1e40af;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .scores {
+            background: #374151;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 QuizBowlHub Phase 3</h1>
+            <h2>Real-time Competition Test Client</h2>
+            <div id="connectionStatus" class="status disconnected">Disconnected</div>
+        </div>
+
+        <div class="grid">
+            <div class="section">
+                <h3>🔗 Connection & Authentication</h3>
+                <div>
+                    <input type="email" id="emailInput" class="input" placeholder="Email" value="student1@school1.edu">
+                    <input type="password" id="passwordInput" class="input" placeholder="Password" value="student123">
+                </div>
+                <div>
+                    <button id="connectBtn" class="button">Connect</button>
+                    <button id="loginBtn" class="button" disabled>Login</button>
+                    <button id="disconnectBtn" class="button danger" disabled>Disconnect</button>
+                </div>
+                <div id="authStatus"></div>
+            </div>
+
+            <div class="section">
+                <h3>🏠 Room Management</h3>
+                <div>
+                    <input type="text" id="roomNameInput" class="input" placeholder="Room Name" value="Test Room">
+                    <button id="createRoomBtn" class="button" disabled>Create Room</button>
+                </div>
+                <div>
+                    <input type="text" id="joinRoomInput" class="input" placeholder="Room ID">
+                    <button id="joinRoomBtn" class="button" disabled>Join Room</button>
+                    <button id="leaveRoomBtn" class="button danger" disabled>Leave Room</button>
+                </div>
+                <div id="roomInfo"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🎮 Game Controls</h3>
+            <div>
+                <button id="startGameBtn" class="button success" disabled>Start Game</button>
+                <button id="nextQuestionBtn" class="button" disabled>Next Question</button>
+            </div>
+            <div id="gameStatus"></div>
+        </div>
+
+        <div class="section">
+            <h3>🔔 Buzzer System</h3>
+            <button id="buzzerBtn" class="buzzer" disabled>
+                🔔 BUZZ IN
+            </button>
+            <div>
+                <input type="text" id="answerInput" class="input" placeholder="Your Answer" disabled>
+                <button id="submitAnswerBtn" class="button" disabled>Submit Answer</button>
+            </div>
+            <div id="buzzerStatus"></div>
+        </div>
+
+        <div class="grid">
+            <div class="section">
+                <h3>❓ Current Question</h3>
+                <div id="questionDisplay" class="question">
+                    No active question
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🏆 Scores</h3>
+                <div id="scoresDisplay" class="scores">
+                    No active game
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📝 Event Log</h3>
+            <div id="eventLog" class="log"></div>
+            <button id="clearLogBtn" class="button">Clear Log</button>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentUser = null;
+        let currentRoom = null;
+        let gameState = null;
+
+        // DOM Elements
+        const elements = {
+            connectionStatus: document.getElementById('connectionStatus'),
+            connectBtn: document.getElementById('connectBtn'),
+            loginBtn: document.getElementById('loginBtn'),
+            disconnectBtn: document.getElementById('disconnectBtn'),
+            emailInput: document.getElementById('emailInput'),
+            passwordInput: document.getElementById('passwordInput'),
+            authStatus: document.getElementById('authStatus'),
+            roomNameInput: document.getElementById('roomNameInput'),
+            createRoomBtn: document.getElementById('createRoomBtn'),
+            joinRoomInput: document.getElementById('joinRoomInput'),
+            joinRoomBtn: document.getElementById('joinRoomBtn'),
+            leaveRoomBtn: document.getElementById('leaveRoomBtn'),
+            roomInfo: document.getElementById('roomInfo'),
+            startGameBtn: document.getElementById('startGameBtn'),
+            nextQuestionBtn: document.getElementById('nextQuestionBtn'),
+            gameStatus: document.getElementById('gameStatus'),
+            buzzerBtn: document.getElementById('buzzerBtn'),
+            answerInput: document.getElementById('answerInput'),
+            submitAnswerBtn: document.getElementById('submitAnswerBtn'),
+            buzzerStatus: document.getElementById('buzzerStatus'),
+            questionDisplay: document.getElementById('questionDisplay'),
+            scoresDisplay: document.getElementById('scoresDisplay'),
+            eventLog: document.getElementById('eventLog'),
+            clearLogBtn: document.getElementById('clearLogBtn')
+        };
+
+        // Logging
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            elements.eventLog.appendChild(entry);
+            elements.eventLog.scrollTop = elements.eventLog.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Update connection status
+        function updateConnectionStatus(status) {
+            elements.connectionStatus.textContent = status;
+            elements.connectionStatus.className = `status ${status.toLowerCase().includes('connected') ? 'connected' : 'disconnected'}`;
+        }
+
+        // Connect to server
+        elements.connectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.disconnect();
+            }
+
+            socket = io('http://localhost:3001', {
+                transports: ['websocket', 'polling']
+            });
+
+            socket.on('connect', () => {
+                log('Connected to server', 'success');
+                updateConnectionStatus('Connected');
+                elements.connectBtn.disabled = true;
+                elements.loginBtn.disabled = false;
+                elements.disconnectBtn.disabled = false;
+            });
+
+            socket.on('disconnect', () => {
+                log('Disconnected from server', 'error');
+                updateConnectionStatus('Disconnected');
+                elements.connectBtn.disabled = false;
+                elements.loginBtn.disabled = true;
+                elements.disconnectBtn.disabled = true;
+                resetGameState();
+            });
+
+            socket.on('authenticated', (data) => {
+                log(`Authenticated as User ${data.userId} (${data.role})`, 'success');
+                currentUser = data;
+                elements.authStatus.innerHTML = `<div class="status authenticated">Authenticated: ${data.role}</div>`;
+                elements.createRoomBtn.disabled = false;
+                elements.joinRoomBtn.disabled = false;
+            });
+
+            socket.on('authentication_error', (data) => {
+                log(`Authentication failed: ${data.error}`, 'error');
+                elements.authStatus.innerHTML = `<div class="status error">Auth Error: ${data.error}</div>`;
+            });
+
+            // Room events
+            socket.on('room_created', (data) => {
+                log(`Room created: ${data.roomId}`, 'success');
+                currentRoom = data.roomId;
+                updateRoomInfo(data.room);
+                elements.startGameBtn.disabled = false;
+            });
+
+            socket.on('room_updated', (roomState) => {
+                log('Room state updated', 'info');
+                updateRoomInfo(roomState);
+                updateGameState(roomState);
+            });
+
+            socket.on('player_joined', (data) => {
+                log(`Player joined: ${data.userName}`, 'info');
+            });
+
+            socket.on('player_left', (data) => {
+                log(`Player left: User ${data.userId}`, 'warning');
+            });
+
+            // Game events
+            socket.on('game_started', (roomState) => {
+                log('Game started!', 'success');
+                updateGameState(roomState);
+                elements.buzzerBtn.disabled = false;
+            });
+
+            socket.on('buzz_registered', (data) => {
+                log(`Buzz registered by User ${data.userId}`, 'warning');
+                elements.buzzerBtn.disabled = true;
+                if (data.userId === currentUser?.userId) {
+                    elements.answerInput.disabled = false;
+                    elements.submitAnswerBtn.disabled = false;
+                    elements.buzzerStatus.innerHTML = '<div class="status success">You buzzed in! Submit your answer.</div>';
+                } else {
+                    elements.buzzerStatus.innerHTML = `<div class="status warning">User ${data.userId} buzzed in first</div>`;
+                }
+            });
+
+            socket.on('buzz_rejected', (data) => {
+                log(`Buzz rejected: ${data.reason}`, 'error');
+                elements.buzzerStatus.innerHTML = `<div class="status error">Buzz rejected: ${data.reason}</div>`;
+            });
+
+            socket.on('answer_result', (data) => {
+                log(`Answer: ${data.answer} - ${data.isCorrect ? 'Correct' : 'Incorrect'} (${data.points > 0 ? '+' : ''}${data.points} pts)`, data.isCorrect ? 'success' : 'error');
+                updateScores(data.scores);
+                elements.buzzerBtn.disabled = false;
+                elements.answerInput.disabled = true;
+                elements.submitAnswerBtn.disabled = true;
+                elements.answerInput.value = '';
+                elements.buzzerStatus.innerHTML = '';
+            });
+
+            socket.on('game_finished', (data) => {
+                log(`Game finished! Winner: User ${data.winner[0]} with ${data.winner[1]} points`, 'success');
+                elements.buzzerBtn.disabled = true;
+                resetGameState();
+            });
+
+            socket.on('error', (data) => {
+                log(`Error: ${data.message}`, 'error');
+            });
+        });
+
+        // Login
+        elements.loginBtn.addEventListener('click', async () => {
+            const email = elements.emailInput.value;
+            const password = elements.passwordInput.value;
+
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log(`Login successful for ${data.user.name}`, 'success');
+                    socket.emit('authenticate', data.token);
+                } else {
+                    log(`Login failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                log(`Login error: ${error.message}`, 'error');
+            }
+        });
+
+        // Disconnect
+        elements.disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        });
+
+        // Create room
+        elements.createRoomBtn.addEventListener('click', () => {
+            const roomName = elements.roomNameInput.value || 'Test Room';
+            socket.emit('create_room', { 
+                roomName,
+                settings: {
+                    questionCount: 5,
+                    categories: [],
+                    difficulty: 'Mixed'
+                }
+            });
+        });
+
+        // Join room
+        elements.joinRoomBtn.addEventListener('click', () => {
+            const roomId = elements.joinRoomInput.value;
+            if (roomId) {
+                socket.emit('join_room', { 
+                    roomId, 
+                    userName: currentUser?.name || 'Test User'
+                });
+                currentRoom = roomId;
+            }
+        });
+
+        // Leave room
+        elements.leaveRoomBtn.addEventListener('click', () => {
+            if (currentRoom) {
+                socket.emit('leave_room', { roomId: currentRoom });
+                currentRoom = null;
+                resetGameState();
+            }
+        });
+
+        // Start game
+        elements.startGameBtn.addEventListener('click', () => {
+            if (currentRoom) {
+                socket.emit('start_game', { roomId: currentRoom });
+            }
+        });
+
+        // Buzzer
+        elements.buzzerBtn.addEventListener('click', () => {
+            if (currentRoom) {
+                socket.emit('buzz', { roomId: currentRoom });
+            }
+        });
+
+        // Submit answer
+        elements.submitAnswerBtn.addEventListener('click', () => {
+            const answer = elements.answerInput.value.trim();
+            if (answer && currentRoom) {
+                socket.emit('submit_answer', { roomId: currentRoom, answer });
+            }
+        });
+
+        // Clear log
+        elements.clearLogBtn.addEventListener('click', () => {
+            elements.eventLog.innerHTML = '';
+        });
+
+        // Helper functions
+        function updateRoomInfo(roomState) {
+            if (!roomState) return;
+            
+            elements.roomInfo.innerHTML = `
+                <div class="game-info">
+                    <strong>Room:</strong> ${roomState.name || roomState.id}<br>
+                    <strong>Players:</strong> ${roomState.players?.length || 0}<br>
+                    <strong>State:</strong> ${roomState.gameState}<br>
+                    <strong>Question:</strong> ${roomState.questionIndex}/${roomState.totalQuestions}
+                </div>
+            `;
+            
+            elements.leaveRoomBtn.disabled = false;
+        }
+
+        function updateGameState(roomState) {
+            if (!roomState) return;
+            
+            gameState = roomState;
+            
+            // Update question display
+            if (roomState.currentQuestion) {
+                elements.questionDisplay.innerHTML = `
+                    <strong>Category:</strong> ${roomState.currentQuestion.category}<br>
+                    <strong>Difficulty:</strong> ${roomState.currentQuestion.difficulty}<br>
+                    <strong>Points:</strong> ${roomState.currentQuestion.points}<br><br>
+                    <strong>Question:</strong> ${roomState.currentQuestion.question}
+                `;
+            }
+            
+            // Update scores
+            if (roomState.scores) {
+                updateScores(roomState.scores);
+            }
+            
+            // Update game status
+            elements.gameStatus.innerHTML = `
+                <div class="game-info">
+                    <strong>Game State:</strong> ${roomState.gameState}<br>
+                    <strong>Question:</strong> ${roomState.questionIndex}/${roomState.totalQuestions}
+                </div>
+            `;
+        }
+
+        function updateScores(scores) {
+            if (!scores) return;
+            
+            const scoreEntries = Object.entries(scores)
+                .sort((a, b) => b[1] - a[1])
+                .map(([userId, score]) => `
+                    <div class="score-item">
+                        <span>User ${userId}</span>
+                        <span>${score} pts</span>
+                    </div>
+                `).join('');
+            
+            elements.scoresDisplay.innerHTML = scoreEntries || 'No scores yet';
+        }
+
+        function resetGameState() {
+            elements.createRoomBtn.disabled = !currentUser;
+            elements.joinRoomBtn.disabled = !currentUser;
+            elements.leaveRoomBtn.disabled = true;
+            elements.startGameBtn.disabled = true;
+            elements.buzzerBtn.disabled = true;
+            elements.answerInput.disabled = true;
+            elements.submitAnswerBtn.disabled = true;
+            elements.roomInfo.innerHTML = '';
+            elements.gameStatus.innerHTML = '';
+            elements.buzzerStatus.innerHTML = '';
+            elements.questionDisplay.innerHTML = 'No active question';
+            elements.scoresDisplay.innerHTML = 'No active game';
+        }
+
+        // Initialize
+        log('Real-time test client loaded', 'info');
+        log('Ready to connect to QuizBowlHub Phase 3 server', 'info');
+    </script>
+</body>
+</html>
